@@ -4,64 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Falling Sand Game Replica</title>
-
-    <!-- Bootstrap 5 for nicer buttons and FontAwesome for icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome/css/font-awesome.min.css" rel="stylesheet"> <!-- FontAwesome for icons -->
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: black; /* Set the background of the body to black */
+            background-color: #000; /* Black background */
         }
-
-        #gameContainer {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            height: 600px;
-            margin: 0 auto;
-            border: 5px solid #fff;
-            background-color: #000;
-            padding: 5px; /* Add padding inside the container */
-            box-sizing: border-box; /* Prevent border from pushing out the content */
-        }
-
         canvas {
             display: block;
-            background: #000;
-            margin: 0 auto;
         }
-
         #controls {
-            width: 100%;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
             display: flex;
-            justify-content: center;
-            margin-top: 10px;
+            gap: 10px;
         }
-
-        .btn {
+        button {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 16px;
-            margin: 0 10px;
         }
-
-        .btn i {
-            margin-right: 5px;
+        button:hover {
+            background: #555;
+        }
+        button:focus {
+            outline: none;
+        }
+        button i {
+            font-size: 20px;
         }
     </style>
 </head>
 <body>
 
-<div id="gameContainer">
-    <canvas id="gameCanvas"></canvas>
-</div>
-
+<canvas id="gameCanvas"></canvas>
 <div id="controls">
-    <button id="sand" class="btn btn-warning"><i class="fas fa-cogs"></i>Sand</button>
-    <button id="water" class="btn btn-primary"><i class="fas fa-tint"></i>Water</button>
-    <button id="oil" class="btn btn-secondary"><i class="fas fa-oil-can"></i>Oil</button>
-    <button id="fire" class="btn btn-danger"><i class="fas fa-fire"></i>Fire</button>
+    <button id="sand"><i class="fa fa-snowflake-o"></i> Sand</button>
+    <button id="water"><i class="fa fa-tint"></i> Water</button>
+    <button id="oil"><i class="fa fa-leaf"></i> Oil</button>
 </div>
 
 <!-- Libraries -->
@@ -71,11 +62,10 @@
 $(document).ready(function () {
     const canvas = $('#gameCanvas')[0];
     const ctx = canvas.getContext('2d');
-
-    // Set canvas size and make it responsive
-    const canvasSize = 600;
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
+    
+    // Resize the canvas
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     // Grid size for particles
     const gridSize = 2;
@@ -90,18 +80,13 @@ $(document).ready(function () {
     const sandColor = '#d4c239';
     const waterColor = '#3a96d1';
     const oilColor = '#c2b280';
-    const fireColor = '#ff4500';  // Fire color
 
     // Particle Types
     const SAND = 'sand';
     const WATER = 'water';
     const OIL = 'oil';
-    const FIRE = 'fire';
 
-    // Initialize game loop
-    let lastTime = 0;
-
-    // Function to randomly spawn particles
+    // Initialize some particles at random locations
     function randomParticles(count) {
         for (let i = 0; i < count; i++) {
             const x = Math.floor(Math.random() * gridWidth);
@@ -121,8 +106,6 @@ $(document).ready(function () {
                     ctx.fillStyle = waterColor;
                 } else if (material === OIL) {
                     ctx.fillStyle = oilColor;
-                } else if (material === FIRE) {
-                    ctx.fillStyle = fireColor;
                 } else {
                     continue;
                 }
@@ -143,7 +126,6 @@ $(document).ready(function () {
                     grid[x][y + 1] = material;
                     grid[x][y] = null;
                 }
-
                 // Water behavior: Spread sideways
                 else if (material === WATER) {
                     if (x + 1 < gridWidth && !grid[x + 1][y + 1]) {
@@ -154,7 +136,6 @@ $(document).ready(function () {
                         grid[x][y] = null;
                     }
                 }
-
                 // Oil behavior: Float on water
                 else if (material === OIL) {
                     if (y + 1 < gridHeight && !grid[x][y + 1]) {
@@ -164,63 +145,22 @@ $(document).ready(function () {
                         grid[x][y] = null; // Oil floats on water, so it doesn't move down
                     }
                 }
-
-                // Fire behavior: Fire rises and flickers
-                else if (material === FIRE) {
-                    if (y - 1 >= 0 && !grid[x][y - 1]) {
-                        grid[x][y - 1] = FIRE; // Fire moves up
-                        grid[x][y] = null;
-                    }
-
-                    // Spread fire to neighboring cells
-                    if (Math.random() < 0.2) {
-                        const dx = Math.floor(Math.random() * 3) - 1;
-                        const dy = Math.floor(Math.random() * 3) - 1;
-                        if (x + dx >= 0 && x + dx < gridWidth && y + dy >= 0 && y + dy < gridHeight) {
-                            if (grid[x + dx][y + dy] === null) {
-                                grid[x + dx][y + dy] = FIRE;
-                            }
-                        }
-                    }
-
-                    // Fire should be extinguished by water
-                    if (y + 1 < gridHeight && grid[x][y + 1] === WATER) {
-                        grid[x][y] = null; // Fire extinguishes when it touches water
-                    }
-                }
             }
         }
     }
 
-    // Mouse Interaction (hold mouse button to spawn particles)
-    let isMousePressed = false;
-    let lastDropTime = 0;
-    const dropInterval = 30; // Milliseconds between particle drops when holding mouse
-
-    $(canvas).on('mousedown', function (event) {
-        isMousePressed = true;
-        const offsetX = event.pageX - $(canvas).offset().left;
-        const offsetY = event.pageY - $(canvas).offset().top;
-        const x = Math.floor(offsetX / gridSize);
-        const y = Math.floor(offsetY / gridSize);
-        if (grid[x] && grid[x][y] === null) {
-            grid[x][y] = selectedMaterial;
-        }
-    }).on('mouseup', function () {
-        isMousePressed = false;
-    }).on('mousemove', function (event) {
-        if (isMousePressed) {
-            const offsetX = event.pageX - $(canvas).offset().left;
-            const offsetY = event.pageY - $(canvas).offset().top;
-            const x = Math.floor(offsetX / gridSize);
-            const y = Math.floor(offsetY / gridSize);
+    // Mouse Interaction
+    $(canvas).on('mousemove', function (event) {
+        if (event.buttons === 1) {  // Left click
+            const x = Math.floor(event.pageX / gridSize);
+            const y = Math.floor(event.pageY / gridSize);
             if (grid[x] && grid[x][y] === null) {
                 grid[x][y] = selectedMaterial;
             }
         }
     });
 
-    // Select material
+    // Control buttons
     $('#sand').on('click', function () {
         selectedMaterial = SAND;
     });
@@ -233,20 +173,21 @@ $(document).ready(function () {
         selectedMaterial = OIL;
     });
 
-    $('#fire').on('click', function () {
-        selectedMaterial = FIRE;
-    });
+    // Start the game by adding some random particles
+    randomParticles(50);
 
-    // Game Loop
+    // Game loop
     function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         updateParticles();
         drawGrid();
         requestAnimationFrame(gameLoop);
     }
 
-    // Start game loop
+    // Start the game loop
     gameLoop();
 });
 </script>
+
 </body>
 </html>
