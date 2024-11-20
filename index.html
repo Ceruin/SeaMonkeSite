@@ -3,349 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Text Effects</title>
+    <title>Falling Sand Game Replica</title>
+
+    <!-- Bootstrap 5 for nicer buttons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         body {
             margin: 0;
-            padding: 0;
             overflow: hidden;
+            background-color: black; /* Set the background of the body to black */
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 600px;
+            margin: 0 auto;
+            border: 5px solid #fff;
             background-color: #000;
-            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            padding: 5px; /* Add padding inside the container to fix border issue */
+            box-sizing: border-box; /* Prevent border from pushing out the content */
         }
-        .animated-text {
+
+        canvas {
+            display: block;
+            background: #000;
+            margin: 0 auto;
+        }
+
+        #controls {
             position: absolute;
-            font-size: 3em;
-            font-weight: bold;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
             color: white;
-            text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 30px #ff00ff;
-            cursor: pointer;
-            will-change: transform, opacity, color;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            gap: 10px;
         }
+
+        .btn {
+            font-size: 16px;
+        }
+
     </style>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script>
-        // Function to create random text effects
-        function createRandomEffect(element) {
-            // List of 20 random effects
-            const effects = [
-                "flyAcross", "pulse", "wave", "appearDisappear", "spin", "colorChange",
-                "bounce", "shake", "zoomInOut", "flash", "rotate", "slideIn", "fadeInOut",
-                "squishStretch", "elasticBounce", "jiggle", "diagonalSlide", "explosion", 
-                "wiggleText", "trailingText"
-            ];
 
-            // Randomly pick an effect from the list
-            const effect = effects[Math.floor(Math.random() * effects.length)];
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <div id="controls">
+        <button id="sand" class="btn btn-warning">Sand</button>
+        <button id="water" class="btn btn-primary">Water</button>
+        <button id="oil" class="btn btn-secondary">Oil</button>
+        <button id="fire" class="btn btn-danger">Fire</button>
+    </div>
+</div>
 
-            switch (effect) {
-                case "flyAcross":
-                    flyAcross(element);
-                    break;
-                case "pulse":
-                    pulse(element);
-                    break;
-                case "wave":
-                    wave(element);
-                    break;
-                case "appearDisappear":
-                    appearDisappear(element);
-                    break;
-                case "spin":
-                    spin(element);
-                    break;
-                case "colorChange":
-                    colorChange(element);
-                    break;
-                case "bounce":
-                    bounce(element);
-                    break;
-                case "shake":
-                    shake(element);
-                    break;
-                case "zoomInOut":
-                    zoomInOut(element);
-                    break;
-                case "flash":
-                    flash(element);
-                    break;
-                case "rotate":
-                    rotate(element);
-                    break;
-                case "slideIn":
-                    slideIn(element);
-                    break;
-                case "fadeInOut":
-                    fadeInOut(element);
-                    break;
-                case "squishStretch":
-                    squishStretch(element);
-                    break;
-                case "elasticBounce":
-                    elasticBounce(element);
-                    break;
-                case "jiggle":
-                    jiggle(element);
-                    break;
-                case "diagonalSlide":
-                    diagonalSlide(element);
-                    break;
-                case "explosion":
-                    explosion(element);
-                    break;
-                case "wiggleText":
-                    wiggleText(element);
-                    break;
-                case "trailingText":
-                    trailingText(element);
-                    break;
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    const canvas = $('#gameCanvas')[0];
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size and make it responsive
+    const canvasSize = 600;
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+
+    // Grid size for particles
+    const gridSize = 2;
+    const gridWidth = Math.floor(canvas.width / gridSize);
+    const gridHeight = Math.floor(canvas.height / gridSize);
+
+    // Create a grid to store particle types
+    const grid = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(null));
+
+    // Variables to track selected material
+    let selectedMaterial = 'sand';  // Default to sand
+    const sandColor = '#d4c239';
+    const waterColor = '#3a96d1';
+    const oilColor = '#c2b280';
+    const fireColor = '#ff4500';  // Fire color
+
+    // Particle Types
+    const SAND = 'sand';
+    const WATER = 'water';
+    const OIL = 'oil';
+    const FIRE = 'fire';
+
+    // Initialize some particles at random locations
+    function randomParticles(count) {
+        for (let i = 0; i < count; i++) {
+            const x = Math.floor(Math.random() * gridWidth);
+            const y = Math.floor(Math.random() * gridHeight / 2); // Start in the top half of the screen
+            grid[x][y] = selectedMaterial;
+        }
+    }
+
+    // Draw grid
+    function drawGrid() {
+        for (let x = 0; x < gridWidth; x++) {
+            for (let y = 0; y < gridHeight; y++) {
+                const material = grid[x][y];
+                if (material === SAND) {
+                    ctx.fillStyle = sandColor;
+                } else if (material === WATER) {
+                    ctx.fillStyle = waterColor;
+                } else if (material === OIL) {
+                    ctx.fillStyle = oilColor;
+                } else if (material === FIRE) {
+                    ctx.fillStyle = fireColor;
+                } else {
+                    continue;
+                }
+                ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
             }
         }
+    }
 
-        // Text animation functions
-        function flyAcross(element) {
-            anime({
-                targets: element,
-                translateX: Math.random() * 1000 - 500,
-                translateY: Math.random() * 1000 - 500,
-                duration: 3000,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
+    // Update particles
+    function updateParticles() {
+        for (let x = 0; x < gridWidth; x++) {
+            for (let y = gridHeight - 1; y >= 0; y--) {
+                const material = grid[x][y];
+                if (!material) continue; // No particle
+
+                // Gravity effect - move down
+                if (y + 1 < gridHeight && !grid[x][y + 1]) {
+                    grid[x][y + 1] = material;
+                    grid[x][y] = null;
+                }
+
+                // Water behavior: Spread sideways
+                else if (material === WATER) {
+                    if (x + 1 < gridWidth && !grid[x + 1][y + 1]) {
+                        grid[x + 1][y + 1] = material;
+                        grid[x][y] = null;
+                    } else if (x - 1 >= 0 && !grid[x - 1][y + 1]) {
+                        grid[x - 1][y + 1] = material;
+                        grid[x][y] = null;
+                    }
+                }
+
+                // Oil behavior: Float on water
+                else if (material === OIL) {
+                    if (y + 1 < gridHeight && !grid[x][y + 1]) {
+                        grid[x][y + 1] = material;
+                        grid[x][y] = null;
+                    } else if (y + 1 < gridHeight && grid[x][y + 1] === WATER) {
+                        grid[x][y] = null; // Oil floats on water, so it doesn't move down
+                    }
+                }
+
+                // Fire behavior: Fire rises and flickers
+                else if (material === FIRE) {
+                    if (y - 1 >= 0 && !grid[x][y - 1]) {
+                        grid[x][y - 1] = FIRE; // Fire moves up
+                        grid[x][y] = null;
+                    }
+
+                    // Spread fire to neighboring cells
+                    if (Math.random() < 0.2) {
+                        const dx = Math.floor(Math.random() * 3) - 1;
+                        const dy = Math.floor(Math.random() * 3) - 1;
+                        if (x + dx >= 0 && x + dx < gridWidth && y + dy >= 0 && y + dy < gridHeight) {
+                            if (grid[x + dx][y + dy] === null) {
+                                grid[x + dx][y + dy] = FIRE;
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
 
-        function pulse(element) {
-            anime({
-                targets: element,
-                scale: [1, 1.5],
-                opacity: [1, 0.5],
-                duration: 1000,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
+    // Mouse Interaction
+    $(canvas).on('mousemove', function (event) {
+        if (event.buttons === 1) {  // Left click
+            const offsetX = event.pageX - $(canvas).offset().left;
+            const offsetY = event.pageY - $(canvas).offset().top;
+            const x = Math.floor(offsetX / gridSize);
+            const y = Math.floor(offsetY / gridSize);
+            if (grid[x] && grid[x][y] === null) {
+                grid[x][y] = selectedMaterial;
+            }
         }
+    });
 
-        function wave(element) {
-            anime({
-                targets: element,
-                translateX: ['-20px', '20px'],
-                duration: 1000,
-                loop: true,
-                direction: 'alternate',
-                easing: 'easeInOutSine'
-            });
-        }
+    // Control buttons
+    $('#sand').on('click', function () {
+        selectedMaterial = SAND;
+    });
 
-        function appearDisappear(element) {
-            anime({
-                targets: element,
-                opacity: [0, 1],
-                scale: [0.5, 1],
-                duration: 1500,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
+    $('#water').on('click', function () {
+        selectedMaterial = WATER;
+    });
 
-        function spin(element) {
-            anime({
-                targets: element,
-                rotate: '1turn',
-                duration: 2000,
-                easing: 'easeInOutQuad',
-                loop: true
-            });
-        }
+    $('#oil').on('click', function () {
+        selectedMaterial = OIL;
+    });
 
-        function colorChange(element) {
-            anime({
-                targets: element,
-                color: ['#ff00ff', '#00ffff', '#ffff00', '#ff0000'],
-                duration: 3000,
-                easing: 'linear',
-                loop: true
-            });
-        }
+    $('#fire').on('click', function () {
+        selectedMaterial = FIRE;
+    });
 
-        function bounce(element) {
-            anime({
-                targets: element,
-                translateY: [0, -30, 0],
-                duration: 500,
-                easing: 'easeInOutQuad',
-                loop: true
-            });
-        }
+    // Start the game by adding some random particles
+    randomParticles(50);
 
-        function shake(element) {
-            anime({
-                targets: element,
-                translateX: ['-5px', '5px', '-5px', '5px', '0px'],
-                duration: 500,
-                easing: 'easeInOutQuad'
-            });
-        }
+    // Game loop
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        updateParticles();
+        drawGrid();
+        requestAnimationFrame(gameLoop);
+    }
 
-        function zoomInOut(element) {
-            anime({
-                targets: element,
-                scale: [1, 2],
-                duration: 1000,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
+    // Start the game loop
+    gameLoop();
+});
+</script>
 
-        function flash(element) {
-            anime({
-                targets: element,
-                opacity: [1, 0],
-                duration: 500,
-                easing: 'linear',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
-
-        function rotate(element) {
-            anime({
-                targets: element,
-                rotate: '360deg',
-                duration: 2000,
-                easing: 'easeInOutQuad',
-                loop: true
-            });
-        }
-
-        function slideIn(element) {
-            anime({
-                targets: element,
-                translateX: [-1000, 0],
-                duration: 1000,
-                easing: 'easeInOutQuad'
-            });
-        }
-
-        function fadeInOut(element) {
-            anime({
-                targets: element,
-                opacity: [1, 0],
-                duration: 1500,
-                easing: 'linear',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
-
-        function squishStretch(element) {
-            anime({
-                targets: element,
-                scaleX: [1, 1.5],
-                scaleY: [1, 0.5],
-                duration: 800,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
-
-        function elasticBounce(element) {
-            anime({
-                targets: element,
-                scale: [1, 1.5],
-                duration: 1000,
-                easing: 'easeInOutElastic',
-                loop: true
-            });
-        }
-
-        function jiggle(element) {
-            anime({
-                targets: element,
-                translateX: ['-10px', '10px'],
-                duration: 500,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
-
-        function diagonalSlide(element) {
-            anime({
-                targets: element,
-                translateX: ['-1000px', '1000px'],
-                translateY: ['-1000px', '1000px'],
-                duration: 2000,
-                easing: 'easeInOutQuad',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
-
-        function explosion(element) {
-            anime({
-                targets: element,
-                scale: [1, 2],
-                opacity: [1, 0],
-                duration: 1000,
-                easing: 'easeOutExpo'
-            });
-        }
-
-        function wiggleText(element) {
-            anime({
-                targets: element,
-                translateX: ['-20px', '20px'],
-                translateY: ['-10px', '10px'],
-                duration: 600,
-                loop: true,
-                easing: 'easeInOutSine',
-                direction: 'alternate'
-            });
-        }
-
-        function trailingText(element) {
-            anime({
-                targets: element,
-                translateX: ['0px', '50px'],
-                opacity: [1, 0],
-                duration: 1500,
-                easing: 'linear',
-                loop: true,
-                direction: 'alternate'
-            });
-        }
-
-        // Function to spawn text with random effects
-        function spawnText(x, y, text) {
-            const newText = document.createElement('div');
-            newText.textContent = text;
-            newText.classList.add('animated-text');
-            newText.style.left = `${x}px`;
-            newText.style.top = `${y}px`;
-            document.body.appendChild(newText);
-
-            // Apply random effects
-            createRandomEffect(newText);
-
-            // Remove the text after animation completes
-            setTimeout(() => {
-                newText.remove();
-            }, 5000);
-        }
-
-        // Add event listener for clicks to spawn text
-        document.body.addEventListener('click', (event) => {
-            const x = event.pageX;
-            const y = event.pageY;
-            const text = "✨✨✨";  // Text to display
-            spawnText(x, y, text);
-        });
-    </script>
 </body>
 </html>
