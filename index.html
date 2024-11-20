@@ -1,47 +1,350 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Splint Sucks</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Text Effects</title>
     <style>
         body {
-            background-color: black;
             margin: 0;
+            padding: 0;
             overflow: hidden;
+            background-color: #000;
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
         }
-        #text {
+        .animated-text {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10vw; /* Adjust font size as needed */
-            font-family: sans-serif;
+            font-size: 3em;
+            font-weight: bold;
             color: white;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 30px #ff00ff;
+            cursor: pointer;
+            will-change: transform, opacity, color;
         }
     </style>
 </head>
 <body>
-    <div id="text">Splint Sucks</div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script>
-        $(document).ready(function() {
-            var text = $("#text");
-            var colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'];
-            var index = 0;
+        // Function to create random text effects
+        function createRandomEffect(element) {
+            // List of 20 random effects
+            const effects = [
+                "flyAcross", "pulse", "wave", "appearDisappear", "spin", "colorChange",
+                "bounce", "shake", "zoomInOut", "flash", "rotate", "slideIn", "fadeInOut",
+                "squishStretch", "elasticBounce", "jiggle", "diagonalSlide", "explosion", 
+                "wiggleText", "trailingText"
+            ];
 
-            setInterval(function() {
-                text.css('color', colors[index]);
-                index = (index + 1) % colors.length;
-                text.animate({
-                    left: '+=10px'
-                }, 1000, function() {
-                    if ($(this).position().left > $(window).width()) {
-                        $(this).css('left', '-100%');
-                    }
-                });
-            }, 1000);
+            // Randomly pick an effect from the list
+            const effect = effects[Math.floor(Math.random() * effects.length)];
+
+            switch (effect) {
+                case "flyAcross":
+                    flyAcross(element);
+                    break;
+                case "pulse":
+                    pulse(element);
+                    break;
+                case "wave":
+                    wave(element);
+                    break;
+                case "appearDisappear":
+                    appearDisappear(element);
+                    break;
+                case "spin":
+                    spin(element);
+                    break;
+                case "colorChange":
+                    colorChange(element);
+                    break;
+                case "bounce":
+                    bounce(element);
+                    break;
+                case "shake":
+                    shake(element);
+                    break;
+                case "zoomInOut":
+                    zoomInOut(element);
+                    break;
+                case "flash":
+                    flash(element);
+                    break;
+                case "rotate":
+                    rotate(element);
+                    break;
+                case "slideIn":
+                    slideIn(element);
+                    break;
+                case "fadeInOut":
+                    fadeInOut(element);
+                    break;
+                case "squishStretch":
+                    squishStretch(element);
+                    break;
+                case "elasticBounce":
+                    elasticBounce(element);
+                    break;
+                case "jiggle":
+                    jiggle(element);
+                    break;
+                case "diagonalSlide":
+                    diagonalSlide(element);
+                    break;
+                case "explosion":
+                    explosion(element);
+                    break;
+                case "wiggleText":
+                    wiggleText(element);
+                    break;
+                case "trailingText":
+                    trailingText(element);
+                    break;
+            }
+        }
+
+        // Text animation functions
+        function flyAcross(element) {
+            anime({
+                targets: element,
+                translateX: Math.random() * 1000 - 500,
+                translateY: Math.random() * 1000 - 500,
+                duration: 3000,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function pulse(element) {
+            anime({
+                targets: element,
+                scale: [1, 1.5],
+                opacity: [1, 0.5],
+                duration: 1000,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function wave(element) {
+            anime({
+                targets: element,
+                translateX: ['-20px', '20px'],
+                duration: 1000,
+                loop: true,
+                direction: 'alternate',
+                easing: 'easeInOutSine'
+            });
+        }
+
+        function appearDisappear(element) {
+            anime({
+                targets: element,
+                opacity: [0, 1],
+                scale: [0.5, 1],
+                duration: 1500,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function spin(element) {
+            anime({
+                targets: element,
+                rotate: '1turn',
+                duration: 2000,
+                easing: 'easeInOutQuad',
+                loop: true
+            });
+        }
+
+        function colorChange(element) {
+            anime({
+                targets: element,
+                color: ['#ff00ff', '#00ffff', '#ffff00', '#ff0000'],
+                duration: 3000,
+                easing: 'linear',
+                loop: true
+            });
+        }
+
+        function bounce(element) {
+            anime({
+                targets: element,
+                translateY: [0, -30, 0],
+                duration: 500,
+                easing: 'easeInOutQuad',
+                loop: true
+            });
+        }
+
+        function shake(element) {
+            anime({
+                targets: element,
+                translateX: ['-5px', '5px', '-5px', '5px', '0px'],
+                duration: 500,
+                easing: 'easeInOutQuad'
+            });
+        }
+
+        function zoomInOut(element) {
+            anime({
+                targets: element,
+                scale: [1, 2],
+                duration: 1000,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function flash(element) {
+            anime({
+                targets: element,
+                opacity: [1, 0],
+                duration: 500,
+                easing: 'linear',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function rotate(element) {
+            anime({
+                targets: element,
+                rotate: '360deg',
+                duration: 2000,
+                easing: 'easeInOutQuad',
+                loop: true
+            });
+        }
+
+        function slideIn(element) {
+            anime({
+                targets: element,
+                translateX: [-1000, 0],
+                duration: 1000,
+                easing: 'easeInOutQuad'
+            });
+        }
+
+        function fadeInOut(element) {
+            anime({
+                targets: element,
+                opacity: [1, 0],
+                duration: 1500,
+                easing: 'linear',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function squishStretch(element) {
+            anime({
+                targets: element,
+                scaleX: [1, 1.5],
+                scaleY: [1, 0.5],
+                duration: 800,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function elasticBounce(element) {
+            anime({
+                targets: element,
+                scale: [1, 1.5],
+                duration: 1000,
+                easing: 'easeInOutElastic',
+                loop: true
+            });
+        }
+
+        function jiggle(element) {
+            anime({
+                targets: element,
+                translateX: ['-10px', '10px'],
+                duration: 500,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function diagonalSlide(element) {
+            anime({
+                targets: element,
+                translateX: ['-1000px', '1000px'],
+                translateY: ['-1000px', '1000px'],
+                duration: 2000,
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        function explosion(element) {
+            anime({
+                targets: element,
+                scale: [1, 2],
+                opacity: [1, 0],
+                duration: 1000,
+                easing: 'easeOutExpo'
+            });
+        }
+
+        function wiggleText(element) {
+            anime({
+                targets: element,
+                translateX: ['-20px', '20px'],
+                translateY: ['-10px', '10px'],
+                duration: 600,
+                loop: true,
+                easing: 'easeInOutSine',
+                direction: 'alternate'
+            });
+        }
+
+        function trailingText(element) {
+            anime({
+                targets: element,
+                translateX: ['0px', '50px'],
+                opacity: [1, 0],
+                duration: 1500,
+                easing: 'linear',
+                loop: true,
+                direction: 'alternate'
+            });
+        }
+
+        // Function to spawn text with random effects
+        function spawnText(x, y, text) {
+            const newText = document.createElement('div');
+            newText.textContent = text;
+            newText.classList.add('animated-text');
+            newText.style.left = `${x}px`;
+            newText.style.top = `${y}px`;
+            document.body.appendChild(newText);
+
+            // Apply random effects
+            createRandomEffect(newText);
+
+            // Remove the text after animation completes
+            setTimeout(() => {
+                newText.remove();
+            }, 5000);
+        }
+
+        // Add event listener for clicks to spawn text
+        document.body.addEventListener('click', (event) => {
+            const x = event.pageX;
+            const y = event.pageY;
+            const text = "✨✨✨";  // Text to display
+            spawnText(x, y, text);
         });
     </script>
 </body>
