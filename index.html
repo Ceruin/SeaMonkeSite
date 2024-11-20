@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Splint Sucks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            overflow: hidden;
+        }
+        #text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10vw; /* Adjust font size as needed */
+            font-family: sans-serif;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="text">Splint Sucks</div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var text = $("#text");
+            var colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'];
+            var index = 0;
+
+            setInterval(function() {
+                text.css('color', colors[index]);
+                index = (index + 1) % colors.length;
+                text.animate({
+                    left: '+=10px'
+                }, 1000, function() {
+                    if ($(this).position().left > $(window).width()) {
+                        $(this).css('left', '-100%');
+                    }
+                });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
