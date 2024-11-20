@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Falling Sand Game Replica</title>
 
-    <!-- Bootstrap 5 for nicer buttons -->
+    <!-- Bootstrap 5 for nicer buttons and FontAwesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
     <style>
         body {
@@ -23,7 +24,7 @@
             margin: 0 auto;
             border: 5px solid #fff;
             background-color: #000;
-            padding: 5px; /* Add padding inside the container to fix border issue */
+            padding: 5px; /* Add padding inside the container */
             box-sizing: border-box; /* Prevent border from pushing out the content */
         }
 
@@ -34,34 +35,33 @@
         }
 
         #controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
+            width: 100%;
             display: flex;
-            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
         }
 
         .btn {
             font-size: 16px;
+            margin: 0 10px;
         }
 
+        .btn i {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
 
 <div id="gameContainer">
     <canvas id="gameCanvas"></canvas>
-    <div id="controls">
-        <button id="sand" class="btn btn-warning">Sand</button>
-        <button id="water" class="btn btn-primary">Water</button>
-        <button id="oil" class="btn btn-secondary">Oil</button>
-        <button id="fire" class="btn btn-danger">Fire</button>
-    </div>
+</div>
+
+<div id="controls">
+    <button id="sand" class="btn btn-warning"><i class="fas fa-cogs"></i>Sand</button>
+    <button id="water" class="btn btn-primary"><i class="fas fa-tint"></i>Water</button>
+    <button id="oil" class="btn btn-secondary"><i class="fas fa-oil-can"></i>Oil</button>
+    <button id="fire" class="btn btn-danger"><i class="fas fa-fire"></i>Fire</button>
 </div>
 
 <!-- Libraries -->
@@ -98,7 +98,10 @@ $(document).ready(function () {
     const OIL = 'oil';
     const FIRE = 'fire';
 
-    // Initialize some particles at random locations
+    // Initialize game loop
+    let lastTime = 0;
+
+    // Function to randomly spawn particles
     function randomParticles(count) {
         for (let i = 0; i < count; i++) {
             const x = Math.floor(Math.random() * gridWidth);
@@ -179,14 +182,34 @@ $(document).ready(function () {
                             }
                         }
                     }
+
+                    // Fire should be extinguished by water
+                    if (y + 1 < gridHeight && grid[x][y + 1] === WATER) {
+                        grid[x][y] = null; // Fire extinguishes when it touches water
+                    }
                 }
             }
         }
     }
 
-    // Mouse Interaction
-    $(canvas).on('mousemove', function (event) {
-        if (event.buttons === 1) {  // Left click
+    // Mouse Interaction (hold mouse button to spawn particles)
+    let isMousePressed = false;
+    let lastDropTime = 0;
+    const dropInterval = 30; // Milliseconds between particle drops when holding mouse
+
+    $(canvas).on('mousedown', function (event) {
+        isMousePressed = true;
+        const offsetX = event.pageX - $(canvas).offset().left;
+        const offsetY = event.pageY - $(canvas).offset().top;
+        const x = Math.floor(offsetX / gridSize);
+        const y = Math.floor(offsetY / gridSize);
+        if (grid[x] && grid[x][y] === null) {
+            grid[x][y] = selectedMaterial;
+        }
+    }).on('mouseup', function () {
+        isMousePressed = false;
+    }).on('mousemove', function (event) {
+        if (isMousePressed) {
             const offsetX = event.pageX - $(canvas).offset().left;
             const offsetY = event.pageY - $(canvas).offset().top;
             const x = Math.floor(offsetX / gridSize);
@@ -197,7 +220,7 @@ $(document).ready(function () {
         }
     });
 
-    // Control buttons
+    // Select material
     $('#sand').on('click', function () {
         selectedMaterial = SAND;
     });
@@ -214,21 +237,16 @@ $(document).ready(function () {
         selectedMaterial = FIRE;
     });
 
-    // Start the game by adding some random particles
-    randomParticles(50);
-
-    // Game loop
+    // Game Loop
     function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         updateParticles();
         drawGrid();
         requestAnimationFrame(gameLoop);
     }
 
-    // Start the game loop
+    // Start game loop
     gameLoop();
 });
 </script>
-
 </body>
 </html>
